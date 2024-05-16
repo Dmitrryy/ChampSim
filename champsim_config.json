@@ -21,14 +21,14 @@
             "lq_width": 2,
             "sq_width": 2,
             "retire_width": 5,
-            "mispredict_penalty": 1,
+            "mispredict_penalty": 13,
             "scheduler_size": 128,
             "decode_latency": 1,
             "dispatch_latency": 1,
             "schedule_latency": 0,
             "execute_latency": 0,
-            "branch_predictor": "bimodal",
-            "btb": "basic_btb"
+            "branch_predictor": "oracle",
+            "btb": "oracle_btb"
         }
     ],
 
