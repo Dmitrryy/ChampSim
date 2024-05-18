@@ -62,8 +62,9 @@ def plot_metric(metrics_s, metric_id, title, labels):
   # Creating the bar chart
   plt.figure(figsize=(10, 5))
 
-  for r, exp_values, label in zip(r_s, exp_values_s, labels):
-    plt.bar(r, exp_values, color='b', width=bar_width, edgecolor='grey', label=label)
+  colors = ['b', 'g', 'r']
+  for i ,(r, exp_values, label) in enumerate(zip(r_s, exp_values_s, labels)):
+    plt.bar(r, exp_values, color=colors[i % len(colors)], width=bar_width, edgecolor='grey', label=label)
 
   # Adding labels
   plt.title(title)
