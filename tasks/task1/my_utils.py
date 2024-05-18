@@ -12,9 +12,12 @@ def parse_champsim_output(text):
   mpki_idx = text.index('MPKI:')
   bc_idx = text.index('BRANCH_CONDITIONAL:')
   ipc_idx = listRightIndex(text, 'IPC:')
+
+  l2c_idx = text.index('cpu0_L2C')
+  assert text[l2c_idx + 1] == 'TOTAL'
   
-  # IPC, TOTAL_MPKI, BRANCH_CONDITIONAL_MPKI
-  return float(text[ipc_idx+1]), float(text[mpki_idx+1]), float(text[bc_idx+1])
+  # IPC, TOTAL_MPKI, BRANCH_CONDITIONAL_MPKI, L2C_access, L2C_hit
+  return float(text[ipc_idx+1]), float(text[mpki_idx+1]), float(text[bc_idx+1]), float(text[l2c_idx+3]), float(text[l2c_idx+5])
 
 def obtain_perf_metrics(traces_path, cwd, config):
   # PREPARATION
@@ -22,7 +25,7 @@ def obtain_perf_metrics(traces_path, cwd, config):
   subprocess.run("make -j8", cwd=cwd, shell=True, check=True)
 
   # GET LIST OF TRACES
-  traces = map(lambda x: os.path.join(cwd, x), os.listdir(traces_path))
+  traces = list(map(lambda x: os.path.join(traces_path, x), os.listdir(traces_path)))
   metrics = {}
 
   # WRAPPER FOR PARALLEL LAUNCH
@@ -40,9 +43,9 @@ def plot_metric(metrics_s, metric_id, title, labels):
   test_names = list(metrics_s[0].keys())
 
   # Extracting metric values
-  exp1_values = [metrics_s[0][test][metric_id] for test in test_names]
-  exp2_values = [metrics_s[1][test][metric_id] for test in test_names]
-  exp3_values = [metrics_s[2][test][metric_id] for test in test_names]
+  exp_values_s = []
+  for m in metrics_s:
+    exp_values_s.append([m[test][metric_id] for test in test_names])
 
   # Number of tests
   num_tests = len(test_names)
@@ -51,16 +54,16 @@ def plot_metric(metrics_s, metric_id, title, labels):
   bar_width = 0.2
 
   # Set positions of bars on X axis
-  r1 = np.arange(num_tests)
-  r2 = [x + bar_width for x in r1]
-  r3 = [x + bar_width for x in r2]
+  r_s = [np.arange(num_tests)]
+  for i in range(len(exp_values_s) - 1):
+    r = [x + bar_width for x in r_s[i]]
+    r_s.append(r)
 
   # Creating the bar chart
   plt.figure(figsize=(10, 5))
 
-  plt.bar(r1, exp1_values, color='b', width=bar_width, edgecolor='grey', label=labels[0])
-  plt.bar(r2, exp2_values, color='g', width=bar_width, edgecolor='grey', label=labels[1])
-  plt.bar(r3, exp3_values, color='r', width=bar_width, edgecolor='grey', label=labels[2])
+  for r, exp_values, label in zip(r_s, exp_values_s, labels):
+    plt.bar(r, exp_values, color='b', width=bar_width, edgecolor='grey', label=label)
 
   # Adding labels
   plt.title(title)
